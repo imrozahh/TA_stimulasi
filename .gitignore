@@ -1,0 +1,57 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Laravel
+/backend/vendor/
+/backend/node_modules/
+/backend/public/build/
+/backend/public/hot
+/backend/storage/*.key
+/backend/storage/logs/*
+/backend/bootstrap/cache/*
+!/backend/bootstrap/cache/.gitignore
+
+# React / Node.js
+node_modules/
+dist/
+build/
+.vite/
+*.local
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+.flutter/
+**/android/local.properties
+**/ios/Flutter/.last_build_id
+
+# IDE and editor
+.idea/
+.vscode/
+*.iml
+
+# Python / Machine Learning
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Sensitive datasets
+/ml/dataset/*.csv
+/ml/dataset/*.xlsx
+
+# Logs and temporary files
+*.log
+.DS_Store
+Thumbs.db
