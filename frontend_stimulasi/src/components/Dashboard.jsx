@@ -1,312 +1,630 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 export function Dashboard({ onLogout }) {
-  // Data Hardcode Statistik
-  const stats = [
-    { title: 'Total Balita Terdata', value: '148', unit: 'Anak', icon: 'groups', color: 'bg-[#0059ba]', text: 'text-[#0059ba]', bgLight: 'bg-[#f0f3ff]', border: 'border-[#c2c6d5]' },
-    { title: 'Perkembangan Sesuai (Normal)', value: '112', unit: '75.7%', icon: 'check_circle', color: 'bg-[#006c50]', text: 'text-[#006c50]', bgLight: 'bg-[#e6f8f1]', border: 'border-[#8bf7cd]' },
-    { title: 'Perkembangan Meragukan', value: '24', unit: '16.2%', icon: 'warning', color: 'bg-[#b45309]', text: 'text-[#b45309]', bgLight: 'bg-[#fffbeb]', border: 'border-[#fde68a]' },
-    { title: 'Penyimpangan Perkembangan', value: '12', unit: '8.1%', icon: 'error', color: 'bg-[#ba1a1a]', text: 'text-[#ba1a1a]', bgLight: 'bg-[#ffdad6]', border: 'border-[#ffb4ab]' },
-  ];
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [journeyRange, setJourneyRange] = useState('Last 6 Months');
 
-  // Data Hardcode Balita & Hasil C4.5
-  const childrenData = [
-    {
-      no: 1,
-      nama: 'Muhammad Al-Fatih',
-      usia: '29 Bulan',
-      jk: 'Laki-laki',
-      ibu: 'Aisyah Putri',
-      skorKpsp: '9/10',
-      klasifikasi: 'Sesuai',
-      rekomendasi: 'Lanjutkan stimulasi rutin kelompok usia 24-36 bulan, evaluasi berkala 3 bulan lagi.'
-    },
-    {
-      no: 2,
-      nama: 'Kirana Anindya Zahra',
-      usia: '13 Bulan',
-      jk: 'Perempuan',
-      ibu: 'Dina Marlina',
-      skorKpsp: '7/10',
-      klasifikasi: 'Meragukan',
-      rekomendasi: 'Fokus stimulasi motorik kasar (berdiri mandiri) dan bicara selama 2 minggu, lalu skrining ulang.'
-    },
-    {
-      no: 3,
-      nama: 'Rayyan Bilal Nugroho',
-      usia: '22 Bulan',
-      jk: 'Laki-laki',
-      ibu: 'Nurul Hidayah',
-      skorKpsp: '5/10',
-      klasifikasi: 'Penyimpangan',
-      rekomendasi: 'Indikasi keterlambatan bicara. Segera rujuk ke Dokter Spesialis Anak (Sp.A) / Poli Tumbuh Kembang.'
-    },
-    {
-      no: 4,
-      nama: 'Aqila Dania Farzana',
-      usia: '20 Bulan',
-      jk: 'Perempuan',
-      ibu: 'Rika Santika',
-      skorKpsp: '10/10',
-      klasifikasi: 'Sesuai',
-      rekomendasi: 'Pertahankan stimulasi teratur, puji setiap usaha kemandirian anak.'
-    },
-    {
-      no: 5,
-      nama: 'Kenzo Alvaro Pratama',
-      usia: '28 Bulan',
-      jk: 'Laki-laki',
-      ibu: 'Endang Lestari',
-      skorKpsp: '8/10',
-      klasifikasi: 'Meragukan',
-      rekomendasi: 'Stimulasi motorik halus (menyusun balok & bermain puzzle) intensif selama 2 pekan.'
-    },
-    {
-      no: 6,
-      nama: 'Siti Hanifah Az-Zahra',
-      usia: '6 Bulan',
-      jk: 'Perempuan',
-      ibu: 'Dewi Kartika',
-      skorKpsp: '9/10',
-      klasifikasi: 'Sesuai',
-      rekomendasi: 'Stimulasi tengkurap, meraih mainan, dan berbicara interaktif setiap hari.'
-    }
-  ];
+  const devChartRef = useRef(null);
+  const classChartRef = useRef(null);
 
-  // Data Hardcode Panduan Stimulasi 4 Aspek
-  const stimulationGuides = [
-    {
-      kategori: 'Motorik Kasar',
-      icon: 'directions_run',
-      color: 'bg-[#f0f3ff] text-[#0059ba] border-[#c2c6d5]',
-      iconBg: 'bg-[#0059ba] text-white',
-      kegiatan: 'Latihan Keseimbangan & Menendang Bola',
-      panduan: 'Ajak anak bermain melempar atau menendang bola plastik besar, melangkah di atas garis lurus, dan melompat kecil dengan gembira.'
-    },
-    {
-      kategori: 'Motorik Halus',
-      icon: 'draw',
-      color: 'bg-[#fdf4ff] text-[#9333ea] border-[#f0abfc]',
-      iconBg: 'bg-[#9333ea] text-white',
-      kegiatan: 'Menyusun Balok & Mencoret Kertas',
-      panduan: 'Berikan balok kayu warna-warni untuk disusun ke atas (4-6 balok), lalu ajak membuat coretan garis bebas menggunakan krayon tebal.'
-    },
-    {
-      kategori: 'Bicara & Bahasa',
-      icon: 'record_voice_over',
-      color: 'bg-[#e6f8f1] text-[#006c50] border-[#8bf7cd]',
-      iconBg: 'bg-[#006c50] text-white',
-      kegiatan: 'Mengenal Benda & Menggabungkan 2 Kata',
-      panduan: 'Tunjuk dan sebutkan nama benda di sekitar dengan jelas. Bacakan buku cerita bergambar dan dorong anak mengucapkan 2 kata saat meminta sesuatu.'
-    },
-    {
-      kategori: 'Sosialisasi & Kemandirian',
-      icon: 'diversity_3',
-      color: 'bg-[#fffbeb] text-[#b45309] border-[#fde68a]',
-      iconBg: 'bg-[#b45309] text-white',
-      kegiatan: 'Makan Sendiri & Melepas Alas Kaki',
-      panduan: 'Beri kesempatan anak menyendok makanan sendiri, melepas sepatu, serta ajak bermain berbagi mainan dengan teman sebaya.'
+  // Initialize Chart.js charts matching Stitch AI specifications
+  useEffect(() => {
+    let devChartInstance = null;
+    let classChartInstance = null;
+
+    if (devChartRef.current) {
+      devChartInstance = new Chart(devChartRef.current, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          datasets: [
+            {
+              label: 'Academic Growth %',
+              data: [65, 72, 68, 78, 85, 88],
+              borderColor: '#0059ba',
+              backgroundColor: 'rgba(0, 89, 186, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: '#0059ba'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              grid: { display: true, color: '#f1f5f9' },
+              border: { display: false }
+            },
+            x: {
+              grid: { display: false },
+              border: { display: false }
+            }
+          }
+        }
+      });
     }
-  ];
+
+    if (classChartRef.current) {
+      classChartInstance = new Chart(classChartRef.current, {
+        type: 'doughnut',
+        data: {
+          datasets: [
+            {
+              data: [82, 18],
+              backgroundColor: ['#006c50', '#ba1a1a'],
+              borderWidth: 0,
+              hoverOffset: 4
+            }
+          ]
+        },
+        options: {
+          cutout: '80%',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (devChartInstance) devChartInstance.destroy();
+      if (classChartInstance) classChartInstance.destroy();
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] flex flex-col md:flex-row text-[#111c2d] font-['Poppins',sans-serif]">
+    <div className="bg-[#f9f9ff] text-[#111c2d] min-h-screen flex font-['Be_Vietnam_Pro',sans-serif]">
       
-      {/* Sidebar: HANYA MENU DASHBOARD */}
-      <aside className="w-full md:w-64 bg-white border-r border-[#c2c6d5]/60 flex flex-col justify-between shrink-0 shadow-xs">
-        <div>
-          {/* Logo & Judul Sistem B-Star */}
-          <div className="h-18 px-6 flex items-center gap-3 border-b border-[#c2c6d5]/40">
-            <div className="w-10 h-10 bg-[#0059ba] rounded-xl flex items-center justify-center text-white shadow-md shadow-[#0059ba]/20">
-              <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                star
-              </span>
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden"
+        />
+      )}
+
+      {/* SideNavBar Shell */}
+      <aside className={`h-screen w-64 fixed left-0 top-0 bg-white border-r border-[#c2c6d5] shadow-xs z-50 flex flex-col py-6 gap-1 transition-transform duration-300 md:translate-x-0 ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
+        
+        {/* Brand Identity */}
+        <div className="px-6 mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#0059ba] rounded-lg flex items-center justify-center text-white shadow-md shadow-[#0059ba]/20">
+              <span className="material-symbols-outlined">school</span>
             </div>
             <div>
-              <h2 className="font-bold text-base text-[#0059ba] tracking-tight">B-Star</h2>
-              <p className="text-[10px] text-[#727784] font-medium tracking-wide">ECD Growth Analytics</p>
-            </div>
-          </div>
-
-          {/* Navigasi: HANYA MENU DASHBOARD */}
-          <div className="p-4">
-            <p className="px-3 text-[11px] font-bold text-[#727784] uppercase tracking-wider mb-2">
-              Menu Utama
-            </p>
-            <button
-              type="button"
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#0059ba] text-white text-xs font-semibold shadow-md shadow-[#0059ba]/20 cursor-default"
-            >
-              <span className="material-symbols-outlined text-[20px]">dashboard</span>
-              <span>Dashboard</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Profil & Logout */}
-        <div className="p-4 border-t border-[#c2c6d5]/40">
-          <div className="flex items-center gap-3 mb-3 p-2.5 rounded-xl bg-[#f0f3ff] border border-[#c2c6d5]/60">
-            <div className="w-9 h-9 rounded-full bg-[#0059ba] text-white flex items-center justify-center font-bold text-xs shrink-0">
-              <span className="material-symbols-outlined text-[18px]">person</span>
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-[#111c2d] truncate">Bdn. Siti Rahmawati</p>
-              <p className="text-[10px] text-[#424753] truncate">Educator & Specialist</p>
+              <h1 className="text-[24px] leading-tight font-bold text-[#0059ba]">B-Star</h1>
+              <p className="text-xs text-[#424753] font-medium">Academic Growth</p>
             </div>
           </div>
 
           <button
-            onClick={onLogout}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold text-[#ba1a1a] bg-[#ffdad6]/40 hover:bg-[#ffdad6] border border-[#ffdad6] transition-colors cursor-pointer"
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden text-[#727784] hover:text-[#111c2d]"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
-            <span>Sign Out</span>
+            <span className="material-symbols-outlined">close</span>
           </button>
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 overflow-y-auto px-4 space-y-1">
+          {/* Dashboard Active */}
+          <a
+            className="flex items-center gap-3 bg-[#2c72d9]/10 text-[#0059ba] border-l-4 border-[#0059ba] px-4 py-3 text-xs font-semibold rounded-r-lg transition-all"
+            href="#dashboard"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#students"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">school</span>
+            <span>Students</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#teachers"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">person_4</span>
+            <span>Teachers</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#parents"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">family_restroom</span>
+            <span>Parents</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#assessment"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">assignment</span>
+            <span>Assessment</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#classification"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">category</span>
+            <span>Classification</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#recommendations"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">auto_awesome</span>
+            <span>Recommendations</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#journey"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">timeline</span>
+            <span>Journey</span>
+          </a>
+
+          <a
+            className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-3 text-xs font-medium transition-colors rounded-lg"
+            href="#reports"
+            onClick={(e) => e.preventDefault()}
+          >
+            <span className="material-symbols-outlined">description</span>
+            <span>Reports</span>
+          </a>
+        </nav>
+
+        {/* CTA & Bottom Items */}
+        <div className="px-4 mt-auto pt-6 border-t border-[#c2c6d5] space-y-3">
+          <button
+            onClick={() => alert('New Assessment Modal')}
+            className="w-full bg-[#0059ba] text-white py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm shadow-[#0059ba]/20 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            <span>New Assessment</span>
+          </button>
+
+          <div className="space-y-1">
+            <a
+              className="flex items-center gap-3 text-[#424753] hover:bg-[#dee8ff] px-4 py-2 text-xs font-medium transition-colors rounded-lg"
+              href="#settings"
+              onClick={(e) => e.preventDefault()}
+            >
+              <span className="material-symbols-outlined">settings</span>
+              <span>Settings</span>
+            </a>
+            
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 text-[#ba1a1a] hover:bg-[#ffdad6]/40 px-4 py-2 text-xs font-semibold transition-colors rounded-lg text-left cursor-pointer"
+            >
+              <span className="material-symbols-outlined">logout</span>
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Canvas */}
+      <main className="flex-1 md:ml-64 min-h-screen transition-all duration-300">
         
-        {/* Top Header */}
-        <header className="h-18 bg-white border-b border-[#c2c6d5]/60 px-6 sm:px-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-[#111c2d]">Dashboard Rekomendasi Stimulasi</h1>
-            <p className="text-xs text-[#727784]">Sistem Klasifikasi Perkembangan Anak Berbasis Algoritma C4.5</p>
+        {/* TopNavBar Shell */}
+        <header className="flex justify-between items-center w-full px-6 py-3 sticky top-0 z-30 bg-[#f9f9ff]/80 backdrop-blur-md shadow-xs border-b border-[#c2c6d5]/40">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 text-[#0059ba] cursor-pointer"
+              aria-label="Open Navigation"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <div className="relative hidden sm:block">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#727784] text-[20px]">
+                search
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-[#f0f3ff] border border-[#c2c6d5]/60 rounded-full text-xs text-[#424753] w-64 focus:ring-2 focus:ring-[#0059ba]/20 outline-none transition-all placeholder:text-[#727784]/70"
+                placeholder="Search students or data..."
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-[#424753] bg-[#f0f3ff] px-3.5 py-2 rounded-xl border border-[#c2c6d5]/50">
-              <span className="material-symbols-outlined text-[#727784] text-[18px]">calendar_today</span>
-              <span>{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-            </div>
-
             <button
-              onClick={onLogout}
-              className="text-xs text-[#727784] hover:text-[#ba1a1a] font-medium transition-colors cursor-pointer px-3 py-1.5 rounded-lg border border-[#c2c6d5]/60 hover:bg-[#ffdad6]/30 flex items-center gap-1"
+              className="p-2 text-[#424753] hover:bg-[#f0f3ff] transition-colors rounded-full relative cursor-pointer"
+              onClick={() => alert('Anda memiliki 3 notifikasi sistem')}
+              aria-label="Notifications"
             >
-              <span className="material-symbols-outlined text-[16px]">logout</span>
-              <span className="hidden sm:inline">Logout</span>
+              <span className="material-symbols-outlined text-[22px]">notifications</span>
+              <span className="absolute top-2 right-2 w-2 h-2 bg-[#ba1a1a] rounded-full"></span>
             </button>
+            
+            <div className="h-7 w-px bg-[#c2c6d5] mx-1"></div>
+            
+            <div className="flex items-center gap-2.5">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs font-bold text-[#111c2d]">Dr. Sarah Chen</p>
+                <p className="text-[10px] text-[#424753]">Head of Admissions</p>
+              </div>
+              <img
+                className="w-10 h-10 rounded-full object-cover border border-[#c2c6d5]"
+                alt="Profile Administrator Dr. Sarah Chen"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb-K-t9nNfRGw9BUp46IO8XmXsOGG30RtqnYrzbrngpDoChEFsdxeokLO27W7RVJNtzROaSS9D6acZPwwenUGRR1CvXaLf5FnTxDV1HOyw2fZTkmI60eFsf5PMybNyd2Ux_SGR_SUAdB3aepUE3nmlSX2P1T5_Fx2KKj6NfMl4T5l1crSjBdUR0f1UIVUl8B7tw9Ki9SWFGR6vBBTJ2k3l6lHXwA-klntHTWFH8lkz3nYoVuJ4msoj6HQYZDry_iN7CBZjJMjSixah"
+              />
+            </div>
           </div>
         </header>
 
-        {/* Konten Dashboard */}
-        <main className="p-6 sm:p-8 space-y-6 max-w-7xl">
+        {/* Dashboard Content */}
+        <div className="p-6 max-w-[1440px] mx-auto space-y-6">
           
-          {/* 1. KARTU STATISTIK (HARDCODED) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((item, idx) => (
-              <div key={idx} className={`p-5 rounded-2xl border ${item.border} ${item.bgLight} shadow-2xs transition-all`}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold text-[#424753]">{item.title}</span>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white ${item.color}`}>
-                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-[#111c2d] tracking-tight">{item.value}</span>
-                  <span className={`text-xs font-bold ${item.text}`}>{item.unit}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* 2. TABEL DATA BALITA & HASIL KLASIFIKASI C4.5 (HARDCODED) */}
-          <div className="bg-white rounded-2xl border border-[#c2c6d5]/60 shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-[#c2c6d5]/40 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-[#111c2d]">Data Hasil Skrining Perkembangan & Rekomendasi</h3>
-                <p className="text-xs text-[#727784] mt-0.5">Klasifikasi status balita berdasarkan kuesioner KPSP dan algoritma C4.5</p>
-              </div>
-              <span className="text-xs font-semibold bg-[#f0f3ff] text-[#0059ba] border border-[#c2c6d5] px-3 py-1 rounded-full">
-                6 Data Sampel
-              </span>
+          {/* Welcome Section & Quick Actions */}
+          <section className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#111c2d] tracking-tight">
+                Welcome back, Sarah
+              </h2>
+              <p className="text-sm text-[#424753] mt-0.5">
+                Here is what's happening in your academy today.
+              </p>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#f0f3ff] text-[#424753] font-semibold border-b border-[#c2c6d5]/60">
-                  <tr>
-                    <th className="py-3 px-4">No</th>
-                    <th className="py-3 px-4">Nama Balita</th>
-                    <th className="py-3 px-4">Usia</th>
-                    <th className="py-3 px-4">Jenis Kelamin</th>
-                    <th className="py-3 px-4">Ibu Kandung</th>
-                    <th className="py-3 px-4">Skor KPSP</th>
-                    <th className="py-3 px-4">Hasil C4.5</th>
-                    <th className="py-3 px-4">Rekomendasi Stimulasi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#c2c6d5]/30 text-[#424753]">
-                  {childrenData.map((child) => (
-                    <tr key={child.no} className="hover:bg-[#f9f9ff] transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-[#727784]">{child.no}</td>
-                      <td className="py-3.5 px-4 font-bold text-[#111c2d]">{child.nama}</td>
-                      <td className="py-3.5 px-4">{child.usia}</td>
-                      <td className="py-3.5 px-4">{child.jk}</td>
-                      <td className="py-3.5 px-4">{child.ibu}</td>
-                      <td className="py-3.5 px-4 font-semibold text-[#111c2d]">{child.skorKpsp}</td>
-                      <td className="py-3.5 px-4">
-                        {child.klasifikasi === 'Sesuai' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#e6f8f1] text-[#006c50] border border-[#8bf7cd]">
-                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                            Sesuai (Normal)
-                          </span>
-                        )}
-                        {child.klasifikasi === 'Meragukan' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#fffbeb] text-[#b45309] border border-[#fde68a]">
-                            <span className="material-symbols-outlined text-[14px]">warning</span>
-                            Meragukan
-                          </span>
-                        )}
-                        {child.klasifikasi === 'Penyimpangan' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#ffdad6] text-[#ba1a1a] border border-[#ffb4ab]">
-                            <span className="material-symbols-outlined text-[14px]">error</span>
-                            Penyimpangan
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 max-w-sm text-[#424753] text-[11px] leading-relaxed">
-                        {child.rekomendasi}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* 3. REKOMENDASI STIMULASI 4 ASPEK (HARDCODED) */}
-          <div>
-            <h3 className="text-sm font-bold text-[#111c2d] mb-3">
-              Panduan Rekomendasi Stimulasi 4 Aspek Tumbuh Kembang
-            </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {stimulationGuides.map((guide, idx) => {
-                return (
-                  <div key={idx} className="bg-white p-5 rounded-2xl border border-[#c2c6d5]/60 shadow-xs">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${guide.iconBg}`}>
-                        <span className="material-symbols-outlined text-[20px]">{guide.icon}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs font-bold text-[#111c2d]">{guide.kategori}</span>
-                        <p className="text-[11px] text-[#0059ba] font-semibold">{guide.kegiatan}</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-[#424753] leading-relaxed bg-[#f0f3ff]/60 p-3 rounded-xl border border-[#c2c6d5]/40">
-                      {guide.panduan}
-                    </p>
-                  </div>
-                );
-              })}
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => alert('Mengekspor laporan akademik...')}
+                className="bg-white border border-[#c2c6d5] text-[#111c2d] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 hover:bg-[#dee8ff]/50 transition-colors shadow-2xs cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">description</span>
+                <span>Generate Report</span>
+              </button>
+              
+              <button
+                onClick={() => alert('Membuka formulir penilaian baru...')}
+                className="bg-[#0059ba] text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity shadow-md shadow-[#0059ba]/20 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                <span>New Assessment</span>
+              </button>
             </div>
-          </div>
+          </section>
 
-        </main>
-      </div>
+          {/* Stats Grid */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Total Students */}
+            <div className="bg-white p-5 rounded-2xl border border-[#c2c6d5] shadow-xs hover:shadow-md transition-all">
+              <div className="flex justify-between items-start">
+                <div className="p-2.5 bg-[#2c72d9]/10 rounded-xl text-[#0059ba]">
+                  <span className="material-symbols-outlined text-[22px]">group</span>
+                </div>
+                <span className="text-xs font-semibold text-[#006c50] flex items-center gap-1 bg-[#8bf7cd]/30 px-2 py-0.5 rounded-full">
+                  <span className="material-symbols-outlined text-[15px]">trending_up</span>
+                  +12%
+                </span>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-[#424753] font-semibold uppercase tracking-wider">Total Students</p>
+                <h3 className="text-3xl font-bold text-[#111c2d] mt-0.5">1,284</h3>
+              </div>
+            </div>
+
+            {/* Recent Assessments */}
+            <div className="bg-white p-5 rounded-2xl border border-[#c2c6d5] shadow-xs hover:shadow-md transition-all">
+              <div className="flex justify-between items-start">
+                <div className="p-2.5 bg-[#8bf7cd]/20 rounded-xl text-[#006c50]">
+                  <span className="material-symbols-outlined text-[22px]">fact_check</span>
+                </div>
+                <span className="text-xs text-[#424753] bg-[#f0f3ff] px-2 py-0.5 rounded-md font-medium">Last 7 days</span>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-[#424753] font-semibold uppercase tracking-wider">Recent Assessments</p>
+                <h3 className="text-3xl font-bold text-[#111c2d] mt-0.5">342</h3>
+              </div>
+            </div>
+
+            {/* Average Growth */}
+            <div className="bg-white p-5 rounded-2xl border border-[#c2c6d5] shadow-xs hover:shadow-md transition-all">
+              <div className="flex justify-between items-start">
+                <div className="p-2.5 bg-[#ffdf9c]/30 rounded-xl text-[#755700]">
+                  <span className="material-symbols-outlined text-[22px]">auto_graph</span>
+                </div>
+                <span className="text-xs font-semibold text-[#006c50] flex items-center gap-1 bg-[#8bf7cd]/30 px-2 py-0.5 rounded-full">
+                  <span className="material-symbols-outlined text-[15px]">arrow_upward</span>
+                  4.2pt
+                </span>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-[#424753] font-semibold uppercase tracking-wider">Average Growth</p>
+                <h3 className="text-3xl font-bold text-[#111c2d] mt-0.5">88%</h3>
+              </div>
+            </div>
+
+            {/* Active Alerts */}
+            <div className="bg-white p-5 rounded-2xl border border-[#c2c6d5] shadow-xs hover:shadow-md transition-all relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div className="p-2.5 bg-[#ffdad6]/40 rounded-xl text-[#ba1a1a]">
+                  <span className="material-symbols-outlined text-[22px]">warning</span>
+                </div>
+                <span className="text-xs text-[#ba1a1a] bg-[#ffdad6] px-2.5 py-0.5 rounded-full font-bold">Priority</span>
+              </div>
+              <div className="mt-4">
+                <p className="text-xs text-[#424753] font-semibold uppercase tracking-wider">Active Alerts</p>
+                <h3 className="text-3xl font-bold text-[#111c2d] mt-0.5">07</h3>
+              </div>
+              <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-[#ba1a1a]/5 rounded-full pointer-events-none"></div>
+            </div>
+          </section>
+
+          {/* Main Charts & Notifications Grid */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Line Chart: Student Development */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#c2c6d5] shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-[#111c2d]">Student Development Journey</h3>
+                  <p className="text-xs text-[#424753]">Monthly longitudinal cognitive & motor progress</p>
+                </div>
+                <select
+                  value={journeyRange}
+                  onChange={(e) => setJourneyRange(e.target.value)}
+                  className="bg-[#f0f3ff] border border-[#c2c6d5]/70 rounded-xl text-xs text-[#424753] px-3 py-1.5 focus:ring-1 focus:ring-[#0059ba] outline-none cursor-pointer self-start sm:self-auto"
+                >
+                  <option>Last 6 Months</option>
+                  <option>Last Year</option>
+                </select>
+              </div>
+              <div className="h-64 w-full relative">
+                <canvas ref={devChartRef}></canvas>
+              </div>
+            </div>
+
+            {/* Notifications Panel */}
+            <div className="bg-white p-6 rounded-2xl border border-[#c2c6d5] shadow-xs flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-base font-bold text-[#111c2d]">System Alerts</h3>
+                  <button onClick={() => alert('Melihat semua notifikasi')} className="text-[#0059ba] text-xs font-semibold hover:underline cursor-pointer">
+                    View All
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-3 p-3.5 bg-[#f0f3ff] rounded-xl border-l-4 border-[#ba1a1a]">
+                    <span className="material-symbols-outlined text-[#ba1a1a] text-[20px] shrink-0 mt-0.5">feedback</span>
+                    <div>
+                      <p className="text-xs font-bold text-[#111c2d]">Review Needed: Leo S.</p>
+                      <p className="text-[11px] text-[#424753] leading-snug">Growth curve below average for 3 weeks.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 p-3.5 bg-[#f0f3ff] rounded-xl border-l-4 border-[#006c50]">
+                    <span className="material-symbols-outlined text-[#006c50] text-[20px] shrink-0 mt-0.5">verified</span>
+                    <div>
+                      <p className="text-xs font-bold text-[#111c2d]">New Parent Report</p>
+                      <p className="text-[11px] text-[#424753] leading-snug">Journey completion for "Social Integration".</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 p-3.5 bg-[#f0f3ff] rounded-xl border-l-4 border-[#0059ba]">
+                    <span className="material-symbols-outlined text-[#0059ba] text-[20px] shrink-0 mt-0.5">update</span>
+                    <div>
+                      <p className="text-xs font-bold text-[#111c2d]">System Update</p>
+                      <p className="text-[11px] text-[#424753] leading-snug">New classification metrics applied to K-2.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#c2c6d5]/40 mt-3 text-center">
+                <span className="text-[11px] text-[#727784]">All indicators synced with C4.5 model</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Bottom Grid: Tables & Progress */}
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Classification Distribution */}
+            <div className="bg-white p-6 rounded-2xl border border-[#c2c6d5] shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 className="text-base font-bold text-[#111c2d] mb-4">Student Classification</h3>
+                <div className="flex-1 flex flex-col items-center justify-center relative my-2">
+                  <div className="h-48 w-48 relative">
+                    <canvas ref={classChartRef}></canvas>
+                  </div>
+                  <div className="absolute text-center pointer-events-none">
+                    <p className="text-2xl font-bold text-[#111c2d]">82%</p>
+                    <p className="text-xs text-[#424753] font-medium">On Track</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-[#c2c6d5]/40 grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#006c50]"></div>
+                  <span className="text-xs text-[#424753] font-medium">Meeting Exp.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#ba1a1a]"></div>
+                  <span className="text-xs text-[#424753] font-medium">Needs Attention</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Assessments Table */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#c2c6d5] shadow-xs">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-base font-bold text-[#111c2d]">Recent Assessments</h3>
+                <button onClick={() => alert('Melihat seluruh riwayat penilaian')} className="text-[#0059ba] text-xs font-semibold hover:underline cursor-pointer">
+                  Explore All
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-[#f0f3ff] text-[#424753] text-[11px] font-bold uppercase border-b border-[#c2c6d5]/50">
+                      <th className="py-3 px-4 first:rounded-l-xl">Student</th>
+                      <th className="py-3 px-4">Subject</th>
+                      <th className="py-3 px-4">Evaluator</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 last:rounded-r-xl text-right">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#c2c6d5]/40 text-xs">
+                    <tr className="hover:bg-[#f0f3ff]/60 transition-colors">
+                      <td className="py-3.5 px-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#d7e2ff] flex items-center justify-center text-[#0059ba] font-bold text-xs">
+                          AM
+                        </div>
+                        <span className="font-semibold text-[#111c2d]">Alice Miller</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#424753]">Social Skills</td>
+                      <td className="py-3.5 px-4 text-[#424753]">Ms. Thompson</td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#8bf7cd]/40 text-[#007255] uppercase">
+                          Meeting Expectations
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-[#111c2d]">92/100</td>
+                    </tr>
+
+                    <tr className="hover:bg-[#f0f3ff]/60 transition-colors">
+                      <td className="py-3.5 px-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#8bf7cd] flex items-center justify-center text-[#006c50] font-bold text-xs">
+                          JB
+                        </div>
+                        <span className="font-semibold text-[#111c2d]">James Bond</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#424753]">Logic &amp; Math</td>
+                      <td className="py-3.5 px-4 text-[#424753]">Dr. Aris</td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#ffdad6] text-[#93000a] uppercase">
+                          Needs Attention
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-[#111c2d]">45/100</td>
+                    </tr>
+
+                    <tr className="hover:bg-[#f0f3ff]/60 transition-colors">
+                      <td className="py-3.5 px-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#ffdf9c] flex items-center justify-center text-[#755700] font-bold text-xs">
+                          CR
+                        </div>
+                        <span className="font-semibold text-[#111c2d]">Chloe Reed</span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#424753]">Motor Control</td>
+                      <td className="py-3.5 px-4 text-[#424753]">Ms. Thompson</td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-[#8bf7cd]/40 text-[#007255] uppercase">
+                          Meeting Expectations
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-bold text-[#111c2d]">88/100</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* Parent Journey Section (Bento Style Card) */}
+          <section className="bg-white p-6 rounded-2xl border border-[#c2c6d5] shadow-xs">
+            <div className="flex justify-between items-center mb-5">
+              <div>
+                <h3 className="text-base font-bold text-[#111c2d]">Top Parent Journeys</h3>
+                <p className="text-xs text-[#424753]">Tracking the most active educational partnerships.</p>
+              </div>
+              <span className="material-symbols-outlined text-[#2c72d9] text-[24px]">favorite</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-[#111c2d]">The Peterson Family</span>
+                  <span className="text-[#0059ba] font-bold">94%</span>
+                </div>
+                <div className="w-full bg-[#dee8ff] h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0059ba] h-full w-[94%] transition-all duration-1000"></div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-[#111c2d]">The Garcia Family</span>
+                  <span className="text-[#0059ba] font-bold">81%</span>
+                </div>
+                <div className="w-full bg-[#dee8ff] h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0059ba] h-full w-[81%] transition-all duration-1000"></div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-[#111c2d]">The Kim Family</span>
+                  <span className="text-[#0059ba] font-bold">76%</span>
+                </div>
+                <div className="w-full bg-[#dee8ff] h-2.5 rounded-full overflow-hidden">
+                  <div className="bg-[#0059ba] h-full w-[76%] transition-all duration-1000"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        {/* Footer / Support */}
+        <footer className="p-6 mt-8 text-center text-[#424753] opacity-75 border-t border-[#c2c6d5]/40">
+          <p className="text-xs">
+            © {new Date().getFullYear()} B-Star Early Childhood Development Platform. Built for Nurturing Tomorrow.
+          </p>
+        </footer>
+
+      </main>
+
+      {/* Contextual Mobile FAB */}
+      <button
+        onClick={() => alert('New Assessment')}
+        className="fixed bottom-6 right-6 bg-[#0059ba] text-white w-14 h-14 rounded-full shadow-2xl md:hidden flex items-center justify-center z-40 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+        aria-label="New Assessment"
+      >
+        <span className="material-symbols-outlined text-[24px]">add</span>
+      </button>
 
     </div>
   );
