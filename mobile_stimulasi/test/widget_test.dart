@@ -1,30 +1,67 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:mobile_stimulasi/main.dart';
+import 'package:mobile_stimulasi/screens/parent_dashboard_screen.dart';
+import 'package:mobile_stimulasi/screens/recommendations_screen.dart';
+import 'package:mobile_stimulasi/screens/weekly_journey_screen.dart';
+import 'package:mobile_stimulasi/screens/development_progress_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('B-Star LoginScreen renders correctly smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(const BStarApp());
+    expect(find.text('B-Star ECD'), findsOneWidget);
+    expect(find.text('Masuk Sekarang'), findsOneWidget);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('B-Star ParentDashboardScreen renders correctly smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ParentDashboardScreen(),
+      ),
+    );
+    expect(find.text('B-Star Parent'), findsOneWidget);
+    expect(find.text('Good morning, Sarah!'), findsOneWidget);
+    expect(find.text('Weekly Journey'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('B-Star RecommendationsScreen renders correctly smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: RecommendationsScreen(),
+      ),
+    );
+    expect(find.text('Weekly Recommendations'), findsOneWidget);
+    expect(find.text("Teacher's Insights"), findsOneWidget);
+    expect(find.text('Community Favourites'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('B-Star WeeklyJourneyScreen renders correctly smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: WeeklyJourneyScreen(),
+      ),
+    );
+    expect(find.text('Weekly Journey'), findsOneWidget);
+    expect(find.text('Week 4: Cognitive Foundations'), findsOneWidget);
+    expect(find.text('Daily Growth Tasks'), findsOneWidget);
+    expect(find.text('Morning Prayer'), findsOneWidget);
+    expect(find.text('Weekend Adventure'), findsOneWidget);
+    expect(find.text('Complete Journey'), findsOneWidget);
+  });
+
+  testWidgets('B-Star DevelopmentProgressScreen renders correctly smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: DevelopmentProgressScreen(),
+      ),
+    );
+    expect(find.text('Growth Journey'), findsOneWidget);
+    expect(find.text('Spiritual'), findsOneWidget);
+    expect(find.text('Cognitive'), findsOneWidget);
+    expect(find.text('Linguistic'), findsOneWidget);
+    expect(find.text('Download Full Report'), findsOneWidget);
+    expect(find.text('Export PDF'), findsOneWidget);
   });
 }
+
+

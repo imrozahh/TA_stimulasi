@@ -1,58 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ⚙️ backend_stimulasi — API & Decision Tree C4.5 Service
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Service backend untuk **Sistem Informasi Rekomendasi Stimulasi Anak Usia Dini** dibangun menggunakan **Laravel 13** dan **PHP 8.3+**. Layanan ini mengelola basis data relasional, otentikasi role-based, pencatatan asesmen perkembangan, engine klasifikasi C4.5, serta manajemen rencana stimulasi mingguan (journey).
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🛠️ Tech Stack & Spesifikasi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Framework:** [Laravel 13.x](https://laravel.com)
+- **Bahasa:** [PHP 8.3+](https://www.php.net)
+- **Database:** MySQL 8.x (didukung SQLite untuk pengujian lokal)
+- **ORM:** Eloquent ORM
+- **Arsitektur:** RESTful API & Service Layer
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 🗃️ Skema Basis Data & Model Eloquent
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Sistem menyediakan 9 model Eloquent utama yang terintegrasi:
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. **`User` (`users`):** Mengelola pengguna sistem dengan role:
+   - `guru`: Pendidik/guru kelas yang melakukan asesmen siswa.
+   - `orang_tua`: Wali murid yang memantau tumbuh kembang anak via aplikasi mobile.
+   - `admin`: Pengelola data master sekolah, kelas, dan akun.
+   - `kepala_sekolah`: Monitoring laporan dan statistik perkembangan sekolah.
+2. **`Siswa` (`siswa`):** Data identitas anak didik (`nama`, `jenis_kelamin`, `tanggal_lahir`, `kelas`).
+3. **`GuruSiswa` (`guru_siswa`):** Pivot table relasi banyak-ke-banyak antara guru dan siswa yang diampu.
+4. **`Aspek` (`aspek`):** Domain capaian perkembangan anak (contoh: Kognitif, Motorik, Linguistik, dll.).
+5. **`Penilaian` (`penilaian`):** Header sesi penilaian siswa per semester dan tahun ajaran.
+6. **`DetailPenilaian` (`detail_penilaian`):** Nilai capaian per aspek perkembangan.
+7. **`HasilKlasifikasi` (`hasil_klasifikasi`):** Output klasifikasi Decision Tree C4.5 (`Sesuai`, `Meragukan`, `Penyimpangan`) dengan relasi 1:1 ke `Penilaian`.
+8. **`Rekomendasi` (`rekomendasi`):** Teks rekomendasi stimulasi spesifik untuk guru dan orang tua berdasarkan hasil klasifikasi.
+9. **`Journey` & `DetailJourney` (`journey`, `detail_journey`):** Header dan rincian checklist aktivitas stimulasi mingguan anak dengan status pengerjaan (`Sudah`/`Belum`) dan catatan perkembangan.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🚀 Panduan Menjalankan Backend
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Prasyarat
+- PHP >= 8.3 dengan ekstensi yang diperlukan (pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json).
+- Composer >= 2.6.
+- Database Server MySQL aktif (misalnya melalui XAMPP).
 
+### 2. Instalasi Dependensi
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 3. Konfigurasi Lingkungan (`.env`)
+Salin file konfigurasi contoh:
+```bash
+copy .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+Pastikan konfigurasi koneksi database pada `.env` telah disesuaikan:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=stimulasi_ta
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Menjalankan Migrasi & Seeder
+Buat database bernama `stimulasi_ta` di MySQL Anda, kemudian jalankan:
+```bash
+php artisan migrate --seed
+```
 
-## Code of Conduct
+### 5. Menjalankan Server Lokal
+```bash
+php artisan serve
+```
+Backend akan berjalan pada port default: `http://localhost:8000`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🧪 Pengujian & Kode Standar
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Jalankan unit & feature tests:
+  ```bash
+  php artisan test
+  ```
+- Pemeriksaan dan perapian kode dengan Laravel Pint:
+  ```bash
+  composer run pint
+  ```
